@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>StudentHubami</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f766e">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+:root{--bg:#f1f5f4;--cd:#fff;--tx:#10231f;--mu:#5b6f6a;--pr:#0f766e;--ac:#f59e0b;--bd:#dbe5e2;--rd:#dc2626;--gn:#15803d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1513;--cd:#14231f;--tx:#e8f3f0;--mu:#93aaa4;--pr:#2dd4bf;--bd:#264039;--rd:#f87171;--gn:#4ade80}}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans Bengali",Segoe UI,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+header{background:#0f766e;color:#fff;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:8px}
+header h1{margin:0;font-size:18px}header h1 span{color:#fde68a}
+header input{border:0;border-radius:8px;padding:6px;font-size:14px}
+main{max-width:720px;margin:0 auto;padding:12px}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--cd);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;border:0;background:none;color:var(--mu);padding:9px 2px;font-size:12px;cursor:pointer}
+nav button b{display:block;font-size:19px}nav button.on{color:var(--pr);font-weight:700}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.k,.c{background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:10px;margin-bottom:8px}
+.k small{color:var(--mu);display:block}.k b{font-size:20px;color:var(--pr)}
+h3{margin:14px 0 6px;font-size:16px}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px;background:var(--cd)}
+th,td{border:1px solid var(--bd);padding:6px;text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}th{background:var(--bg)}
+input,select{width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px;font-size:15px;background:var(--cd);color:var(--tx);margin:3px 0}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.b{background:var(--pr);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-size:15px;cursor:pointer;font-weight:700}
+.b.s{background:none;color:var(--pr);border:1px solid var(--pr);padding:5px 10px;font-size:13px}
+.b.d{background:none;color:var(--rd);border:1px solid var(--rd);padding:3px 9px;font-size:13px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)}
+.mu{color:var(--mu);font-size:13px}.up{color:var(--gn)}.dn{color:var(--rd)}
+.tag{font-size:11px;border-radius:99px;padding:1px 8px;background:var(--gn);color:#fff}.tag.x{background:var(--mu)}
+.st{display:flex;align-items:center;gap:6px}.st button{width:34px;height:34px;border-radius:50%;border:1px solid var(--pr);background:none;color:var(--pr);font-size:20px;cursor:pointer}.st b{min-width:30px;text-align:center;font-size:18px}
+@media print{header,nav,.np{display:none}}
+</style>
+</head>
+<body>
+<header><h1>Student<span>Hubami</span></h1><input type="month" id="mo"></header>
+<main id="v"></main>
+<nav>
+<button data-a="tab" data-i="home"><b>📊</b>হিসাব</button>
+<button data-a="tab" data-i="meal"><b>🍚</b>মিল</button>
+<button data-a="tab" data-i="money"><b>💰</b>টাকা</button>
+<button data-a="tab" data-i="rice"><b>🌾</b>চাল</button>
+<button data-a="tab" data-i="mem"><b>👥</b>সদস্য</button>
+</nav>
+<input type="file" id="imp" accept=".json" style="display:none">
+<script>
+const K='sh_data';let D=null;
+try{D=JSON.parse(localStorage.getItem(K))}catch(e){}
+D=D||{members:[],meals:{},exp:[],dep:[],rice:[]};
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(D))}catch(e){alert('সংরক্ষণ করা যায়নি! ব্রাউজারের স্টোরেজ পূর্ণ বা বন্ধ।')}};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const $=s=>document.querySelector(s);
+const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const pad=n=>String(n).padStart(2,'0');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const f=n=>(Math.round((+n||0)*100)/100).toLocaleString('en-US');
+let M=today().slice(0,7),tab='home';
+const dd=()=>{const t=today();return t.startsWith(M)?t:M+'-01'};
+let day=dd();
+const mn=id=>(D.members.find(m=>m.id===id)||{name:'(মুছে ফেলা সদস্য)'}).name;
+const inM=d=>(d||'').startsWith(M);
+const opts=(all)=>D.members.filter(m=>all||m.active).map(m=>`<option value="${m.id}">${esc(m.name)}${m.active?'':' (নিষ্ক্রিয়)'}</option>`).join('');
+function calc(){
+ let tm=0;const ml={};
+ for(const d in D.meals)if(inM(d))for(const id in D.meals[d]){const v=+D.meals[d][id]||0;ml[id]=(ml[id]||0)+v;tm+=v}
+ const ex=D.exp.filter(e=>inM(e.date));
+ const bz=ex.filter(e=>e.kind==='bazar').reduce((a,e)=>a+e.amt,0);
+ const ot=ex.filter(e=>e.kind==='other').reduce((a,e)=>a+e.amt,0);
+ const own=ex.filter(e=>e.own).reduce((a,e)=>a+e.amt,0);
+ const act=D.members.filter(m=>m.active);
+ const rate=tm?bz/tm:0,share=act.length?ot/act.length:0;
+ const cr={};
+ D.dep.filter(x=>inM(x.date)).forEach(x=>cr[x.mid]=(cr[x.mid]||0)+x.amt);
+ ex.filter(e=>e.own&&e.by).forEach(e=>cr[e.by]=(cr[e.by]||0)+e.amt);
+ const td=D.dep.filter(x=>inM(x.date)).reduce((a,x)=>a+x.amt,0);
+ const rows=D.members.filter(m=>m.active||ml[m.id]||cr[m.id]).map(m=>{const meals=ml[m.id]||0,cost=meals*rate,sh=m.active?share:0,dep=cr[m.id]||0;return{m,meals,cost,sh,dep,bal:Math.round((dep-cost-sh)*100)/100}});
+ return{tm,bz,ot,rate,share,rows,td,cash:td-(bz+ot-own),act:act.length}
+}
+function riceCalc(){
+ const end=M+'-31';let inAll=0,useAll=0,inM_=0,useM=0;const pm={};
+ D.rice.forEach(r=>{if(r.date<=end){r.type==='in'?inAll+=r.kg:useAll+=r.kg}
+  if(inM(r.date)){if(r.type==='in'){inM_+=r.kg;if(r.mid)pm[r.mid]=(pm[r.mid]||0)+r.kg}else useM+=r.kg}});
+ return{stock:inAll-useAll,inM:inM_,useM,pm}
+}
+const V={
+home(){const c=calc();
+ const body=c.rows.map(r=>`<tr><td>${esc(r.m.name)}${r.m.active?'':' <span class="mu">(নিষ্ক্রিয়)</span>'}</td><td>${f(r.meals)}</td><td>${f(r.cost)}</td><td>${f(r.sh)}</td><td>${f(r.dep)}</td><td class="${r.bal<0?'dn':'up'}">${r.bal<0?'দেবে ':r.bal>0?'পাবে ':''}${f(Math.abs(r.bal))}</td></tr>`).join('');
+ return `<div class="g"><div class="k"><small>মোট বাজার খরচ</small><b>৳${f(c.bz)}</b></div><div class="k"><small>মোট মিল</small><b>${f(c.tm)}</b></div><div class="k"><small>মিল রেট</small><b>৳${f(c.rate)}</b></div><div class="k"><small>হাতে নগদ</small><b class="${c.cash<0?'dn':''}">৳${f(c.cash)}</b></div><div class="k"><small>অন্যান্য খরচ (জনপ্রতি)</small><b>৳${f(c.share)}</b></div><div class="k"><small>সক্রিয় / মোট সদস্য</small><b>${c.act} / ${D.members.length}</b></div></div>
+ <h3>সদস্যভিত্তিক হিসাব</h3><div class="tw"><table><tr><th>নাম</th><th>মিল</th><th>মিল খরচ</th><th>অন্যান্য</th><th>জমা</th><th>হিসাব</th></tr>${body||'<tr><td colspan="6">সদস্য যোগ করুন</td></tr>'}</table></div>
+ <p class="mu">মিল খরচ = মিল × মিল রেট। জমা = দেওয়া টাকা + নিজের টাকায় করা খরচ। অন্যান্য খরচ শুধু সক্রিয় সদস্যদের মধ্যে সমান ভাগ হয়।</p>
+ <div class="np"><button class="b" data-a="prt">🖨 প্রিন্ট / PDF</button> <button class="b s" data-a="exp">⬇ ব্যাকআপ</button> <button class="b s" data-a="imp">⬆ ব্যাকআপ ফেরত</button>
+ <p class="mu">⚠ ডেটা শুধু এই ফোনের ব্রাউজারে জমা থাকে। ব্রাউজারের data মুছলে হারিয়ে যাবে, তাই নিয়মিত ব্যাকআপ নিন।</p></div>`},
+meal(){const as=D.members.filter(m=>m.active),dm=D.meals[day]||{};
+ const tot=Object.values(dm).reduce((a,v)=>a+v,0);
+ return `<div class="c"><b>তারিখ</b><input type="date" id="md" value="${day}"></div>
+ <div class="c">${as.map(m=>`<div class="row"><span>${esc(m.name)}</span><span class="st"><button data-a="mp" data-i="${m.id}" data-s="-0.5">−</button><b>${f(dm[m.id]||0)}</b><button data-a="mp" data-i="${m.id}" data-s="0.5">+</button></span></div>`).join('')||'<p class="mu">কোনো সক্রিয় সদস্য নেই। "সদস্য" ট্যাবে যোগ করুন।</p>'}
+ <p class="mu">এই দিনের মোট মিল: <b>${f(tot)}</b> · প্রতিবার ০.৫ করে বাড়ে/কমে।</p></div>
+ <h3>এই মাসের দৈনিক মিল</h3><div class="c">${Object.keys(D.meals).filter(inM).sort().reverse().map(d=>`<div class="row"><span>${d}</span><b>${f(Object.values(D.meals[d]).reduce((a,v)=>a+v,0))}</b></div>`).join('')||'<p class="mu">কোনো মিল নেই</p>'}</div>`},
+money(){
+ const ex=D.exp.filter(e=>inM(e.date)).sort((a,b)=>b.date.localeCompare(a.date)),dp=D.dep.filter(e=>inM(e.date)).sort((a,b)=>b.date.localeCompare(a.date));
+ return `<h3>জমা নিন</h3><div class="c"><select id="dm"><option value="">সদস্য বাছুন</option>${opts(1)}</select><div class="r2"><input id="da" type="number" inputmode="decimal" placeholder="টাকা"><input id="dd" type="date" value="${dd()}"></div><button class="b" data-a="addD">জমা যোগ করুন</button></div>
+ <h3>খরচ যোগ করুন</h3><div class="c"><div class="r2"><select id="ek"><option value="bazar">বাজার (মিলের খরচ)</option><option value="other">অন্যান্য (গ্যাস/বিল/ভাড়া)</option></select><input id="ea" type="number" inputmode="decimal" placeholder="টাকা"></div><input id="en" placeholder="বিবরণ (যেমন: মাছ, সবজি)"><div class="r2"><input id="ed" type="date" value="${dd()}"><select id="eb"><option value="">কে করেছে (ঐচ্ছিক)</option>${opts(1)}</select></div><label class="mu"><input type="checkbox" id="eo" style="width:auto"> নিজের পকেটের টাকায় (তার জমা হিসেবে গণ্য হবে)</label><br><button class="b" data-a="addE">খরচ যোগ করুন</button></div>
+ <h3>এই মাসের জমা</h3><div class="c">${dp.map(x=>`<div class="row"><span>${x.date} · ${esc(mn(x.mid))}</span><span><b>৳${f(x.amt)}</b> <button class="b d" data-a="del" data-k="dep" data-i="${x.id}">✕</button></span></div>`).join('')||'<p class="mu">কোনো জমা নেই</p>'}</div>
+ <h3>এই মাসের খরচ</h3><div class="c">${ex.map(x=>`<div class="row"><span>${x.date} · ${x.kind==='bazar'?'বাজার':'অন্যান্য'}${x.desc?' · '+esc(x.desc):''}${x.by?' · '+esc(mn(x.by)):''}${x.own?' (নিজের টাকা)':''}</span><span><b>৳${f(x.amt)}</b> <button class="b d" data-a="del" data-k="exp" data-i="${x.id}">✕</button></span></div>`).join('')||'<p class="mu">কোনো খরচ নেই</p>'}</div>`},
+rice(){const c=riceCalc(),L=D.rice.filter(r=>inM(r.date)).sort((a,b)=>b.date.localeCompare(a.date));
+ return `<div class="g"><div class="k"><small>মোট মজুদ চাল</small><b class="${c.stock<0?'dn':''}">${f(c.stock)} কেজি</b></div><div class="k"><small>এ মাসে এসেছে / ব্যবহার</small><b>${f(c.inM)} / ${f(c.useM)}</b></div></div>
+ <h3>চালের এন্ট্রি</h3><div class="c"><div class="r2"><select id="rt"><option value="in">চাল এসেছে (কেনা/আনা)</option><option value="use">চাল ব্যবহার হয়েছে</option></select><input id="rk" type="number" inputmode="decimal" placeholder="কেজি"></div><div class="r2"><input id="rd" type="date" value="${dd()}"><select id="rm"><option value="">কে এনেছে (ঐচ্ছিক)</option>${opts(1)}</select></div><input id="rn" placeholder="নোট (ঐচ্ছিক)"><button class="b" data-a="addR">যোগ করুন</button></div>
+ <h3>সদস্যভিত্তিক চাল (এ মাসে)</h3><div class="c">${Object.keys(c.pm).map(id=>`<div class="row"><span>${esc(mn(id))}</span><b>${f(c.pm[id])} কেজি</b></div>`).join('')||'<p class="mu">কেউ চাল আনেনি</p>'}</div>
+ <h3>এ মাসের এন্ট্রি</h3><div class="c">${L.map(r=>`<div class="row"><span>${r.date} · ${r.type==='in'?'এসেছে':'ব্যবহার'}${r.mid?' · '+esc(mn(r.mid)):''}${r.note?' · '+esc(r.note):''}</span><span><b>${f(r.kg)} কেজি</b> <button class="b d" data-a="del" data-k="rice" data-i="${r.id}">✕</button></span></div>`).join('')||'<p class="mu">কোনো এন্ট্রি নেই</p>'}</div>`},
+mem(){return `<h3>নতুন সদস্য</h3><div class="c"><input id="mn" placeholder="নাম"><div class="r2"><input id="mp" placeholder="ফোন (ঐচ্ছিক)"><input id="mr" placeholder="রুম (ঐচ্ছিক)"></div><button class="b" data-a="addM">সদস্য যোগ করুন</button></div>
+ <h3>সব সদস্য (${D.members.filter(m=>m.active).length} জন সক্রিয়)</h3><div class="c">${D.members.map(m=>`<div class="row"><span><b>${esc(m.name)}</b> <span class="tag ${m.active?'':'x'}">${m.active?'সক্রিয়':'নিষ্ক্রিয়'}</span><br><span class="mu">${esc(m.phone||'')} ${m.room?'· রুম '+esc(m.room):''}</span></span><span><button class="b s" data-a="tog" data-i="${m.id}">${m.active?'নিষ্ক্রিয় করুন':'সক্রিয় করুন'}</button> <button class="b d" data-a="delM" data-i="${m.id}">✕</button></span></div>`).join('')||'<p class="mu">কোনো সদস্য নেই</p>'}</div>
+ <p class="mu">সদস্য চলে গেলে মুছবেন না, "নিষ্ক্রিয়" করুন। তাতে আগের হিসাব ঠিক থাকবে, কিন্তু নতুন মিল ও অন্যান্য খরচে ধরা হবে না।</p>`}
+};
+const A={
+ tab(b){tab=b.dataset.i;render()},
+ mp(b){const id=b.dataset.i,s=+b.dataset.s;D.meals[day]=D.meals[day]||{};const v=Math.max(0,(+D.meals[day][id]||0)+s);if(v)D.meals[day][id]=v;else{delete D.meals[day][id];if(!Object.keys(D.meals[day]).length)delete D.meals[day]}save();render()},
+ addM(){const n=$('#mn').value.trim();if(!n)return alert('নাম লিখুন');if(D.members.some(m=>m.name===n)&&!confirm('এই নামে আগে থেকেই সদস্য আছে। তবুও যোগ করবেন?'))return;D.members.push({id:uid(),name:n,phone:$('#mp').value.trim(),room:$('#mr').value.trim(),active:true});save();render()},
+ tog(b){const m=D.members.find(x=>x.id===b.dataset.i);m.active=!m.active;save();render()},
+ delM(b){const id=b.dataset.i;const used=Object.values(D.meals).some(d=>d[id])||D.dep.some(x=>x.mid===id)||D.exp.some(x=>x.by===id)||D.rice.some(x=>x.mid===id);if(used)return alert('এই সদস্যের হিসাব আছে, তাই মোছা যাবে না। "নিষ্ক্রিয় করুন" ব্যবহার করুন।');if(!confirm('সদস্যকে মুছবেন?'))return;D.members=D.members.filter(m=>m.id!==id);save();render()},
+ addD(){const a=+$('#da').value,mid=$('#dm').value;if(!(a>0)||!mid)return alert('সদস্য বাছুন ও সঠিক টাকা দিন');D.dep.push({id:uid(),date:$('#dd').value||dd(),amt:a,mid});save();render()},
+ addE(){const a=+$('#ea').value,by=$('#eb').value,own=$('#eo').checked;if(!(a>0))return alert('সঠিক টাকা দিন');if(own&&!by)return alert('নিজের টাকায় হলে "কে করেছে" বাছুন');D.exp.push({id:uid(),date:$('#ed').value||dd(),amt:a,kind:$('#ek').value,desc:$('#en').value.trim(),by,own});save();render()},
+ addR(){const k=+$('#rk').value;if(!(k>0))return alert('সঠিক কেজি দিন');D.rice.push({id:uid(),date:$('#rd').value||dd(),kg:k,type:$('#rt').value,mid:$('#rm').value,note:$('#rn').value.trim()});save();render()},
+ del(b){if(!confirm('মুছে ফেলবেন?'))return;const k=b.dataset.k;D[k]=D[k].filter(x=>x.id!==b.dataset.i);save();render()},
+ prt(){window.print()},
+ exp(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D)],{type:'application/json'}));a.download='studenthubami-backup-'+today()+'.json';document.body.appendChild(a);a.click();a.remove()},
+ imp(){$('#imp').click()}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&A[b.dataset.a])A[b.dataset.a](b)});
+document.addEventListener('change',e=>{if(e.target.id==='md'&&e.target.value){day=e.target.value;if(!day.startsWith(M)){M=day.slice(0,7);$('#mo').value=M}render()}});
+$('#imp').addEventListener('change',e=>{const fl=e.target.files[0];if(!fl)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x.members)||!x.meals||!Array.isArray(x.exp)||!Array.isArray(x.dep))throw 0;if(!confirm('বর্তমান সব ডেটা বদলে ব্যাকআপের ডেটা বসবে। নিশ্চিত?'))return;x.rice=x.rice||[];D=x;save();render()}catch(_){alert('ফাইলটি সঠিক ব্যাকআপ নয়')}e.target.value=''};r.readAsText(fl)});
+$('#mo').value=M;
+$('#mo').addEventListener('change',e=>{if(e.target.value){M=e.target.value;day=dd();render()}});
+function render(){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.i===tab));$('#v').innerHTML=V[tab]();scrollTo(0,0)}
+render();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+</script>
+</body>
+</html>
